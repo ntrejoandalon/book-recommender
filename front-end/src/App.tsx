@@ -67,6 +67,7 @@ function App() {
   const doKMeans = async () => {
     if (bookTitle != '') {
       let bookInformation = await getBookInformation(bookTitle) as unknown as BookInformation
+      console.log(bookInformation)
       let genres : string[] = []
       let recommendation = ''
       
@@ -75,11 +76,13 @@ function App() {
         headers: { 'Access-Control-Allow-Origin': '*' }
       };
       axios
-        .post("http://localhost:5000/convertGenres", {
+        .post("http://127.0.0.1:5000/convertGenres", {
           input: bookInformation.subjects,
         }, config)
         .then((response) => {
+          console.log(response)
           genres = response.data
+          console.log(genres)
         })
         .catch((er) => {
           console.log(er);
@@ -87,8 +90,9 @@ function App() {
 
         
       //call the actual kmeans maker function
+      // "http://localhost:5000/kmeans"
       axios
-        .post("http://localhost:5000/kmeans", {
+        .post("http://127.0.0.1:5000/kmeans", {
           genresTypes: genres,
           num_pages: bookInformation.numPages,
           ratings_count: bookInformation.numRatings,
@@ -97,6 +101,7 @@ function App() {
         }, config)
         .then((response) => {
           recommendation = response.data
+          console.log(recommendation)
         })
         .catch((er) => {
           console.log(er);
@@ -122,13 +127,6 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {/* new line start
-        <p>To get your profile details: </p><button onClick={getData}>Click me</button>
-        {profileData && <div>
-              <p>Profile name: {profileData.profile_name}</p>
-              <p>About me: {profileData.about_me}</p>
-            </div>
-        } */}
         <h1>
           Book Recommender!
         </h1>
