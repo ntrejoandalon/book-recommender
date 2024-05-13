@@ -67,7 +67,6 @@ function App() {
   const doKMeans = async () => {
     if (bookTitle != '') {
       let bookInformation = await getBookInformation(bookTitle) as unknown as BookInformation
-      console.log(bookInformation)
       let genres : string[] = []
       let recommendation = ''
       
@@ -75,25 +74,24 @@ function App() {
       const config = {
         headers: { 'Access-Control-Allow-Origin': '*' }
       };
-      axios
+      await axios
         .post("http://127.0.0.1:5000/convertGenres", {
           input: bookInformation.subjects,
         }, config)
         .then((response) => {
-          console.log(response)
+          // console.log(response)
           genres = response.data
-          console.log(genres)
         })
         .catch((er) => {
           console.log(er);
         });
 
-        
+      console.log(genres)
       //call the actual kmeans maker function
       // "http://localhost:5000/kmeans"
       axios
         .post("http://127.0.0.1:5000/kmeans", {
-          genresTypes: genres,
+          book_genres: genres,
           num_pages: bookInformation.numPages,
           ratings_count: bookInformation.numRatings,
           average_rating: bookInformation.averageRating,
