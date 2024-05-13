@@ -104,6 +104,17 @@ function App() {
         .catch((er) => {
           console.log(er);
         });
+      axios
+      .post("http://127.0.0.1:5000/sentenceTransformer", {
+        userDescription: description
+      }, config)
+      .then((response) => {
+        recommendation = response.data
+        console.log(recommendation)
+      })
+      .catch((er) => {
+        console.log(er);
+      });
     }
     // axios({
     //   method: "GET",

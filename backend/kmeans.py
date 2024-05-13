@@ -11,7 +11,6 @@ def kmeans(average_rating, num_pages, ratings_count, text_reviews_count, genres)
     normalizedDataset = normalizeData(datasetWithUserBook)
     pcaData = pca(normalizedDataset)
     predictions = callKmeansModel(pcaData)
-    print(predictions)
     # section out user book's pca points and cluster
     userBookPCA = pcaData.iloc[0]
     userBookCluster = predictions[0]
@@ -22,12 +21,11 @@ def kmeans(average_rating, num_pages, ratings_count, text_reviews_count, genres)
     updatedFullBookData = updateFullBookData(rawBookDataset, pcaData, predictions)
     # print(updatedFullBookData)
     clusterBooks = getBooksInCluster(userBookCluster, updatedFullBookData)
-    print(userBookCluster)
-    print(len(clusterBooks))
+    
     bookRecc, distance, point = findClosestPoint(clusterBooks, userBookPCA)
-    print(bookRecc)
-    print(distance)
-    print(point)
+    result = "Your recommendation is " + bookRecc['Title'] + " by " + bookRecc['Author'] + ". It has a rating of " + str(bookRecc['average_rating']) + " stars!"
+    return result
+
 
 def createDataset(average_rating, num_pages, ratings_count, text_reviews_count, genres):
     bookDataset = pd.read_csv('modelData/recleanedData(4-23).csv')
