@@ -1,15 +1,169 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import axios from "axios"
+import InputSection from './contentSections/InputSection';
+import OutputSection, { displayedBookFields } from './contentSections/OutputSection';
+import Popup from 'reactjs-popup';
+import { Bounce, ToastContainer, Zoom, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import EyeButton from "./images/eye-button.png"
+
+export enum AppState {
+  Input, Loading, ModelFinished, Read1984
+}
+
+export interface BookInformation {
+  title: string,
+  author: string[],
+  numInteractions: number,
+  averageRating: number,
+  numRatings: number,
+  description: string,
+  numPages: number,
+  subjects: string[],
+  isbn: string
+}
+
 function App() {
   const [bookTitle, setBookTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [appState, setAppState] = useState(AppState.Input)
+  const [recommendations, setRecommendations] = useState<displayedBookFields[]>([])
+  const notify = (field: string) => toast.error('Big Brother sees you have not filled out ' + field, {
+    position: "top-center",
+    autoClose: 2000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "colored",
+    transition: Zoom,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    doKMeans();
-    alert('An essay was submitted: ' + bookTitle);
+    if (description != '' && bookTitle != '') {
+      recommendations.length = 0;
+      setRecommendations([])
+      setAppState(AppState.Loading);
+      doKMeans();
+      // addBookToRecommendations("Your recommendation is 1984 written by George Orwell.")
+      doSentenceTransformer();
 
-    e.preventDefault();
+    } else {
+      let unfilledField: string;
+      if (description == bookTitle) {
+        notify('either field.')
+      } else if (description == '') {
+        notify('book description.')
+
+      } else {
+        notify('book title.')
+
+      }
+
+    }
+  }
+
+
+  function handleSetBookTitle(value: string) {
+    setBookTitle(value)
+  }
+
+  function handleSetDescription(value: string) {
+    setDescription(value)
+  }
+
+  function handleSetState(value: AppState) {
+    setAppState(value);
+  }
+
+  const addBookToRecommendations = async (description: string) => {
+    // result = "Your recommendation is " + bookRecc['Title'] + " by " + bookRecc['Author'] + ". It has a rating of " + str(bookRecc['average_rating']) + " stars!"
+    // result = "Your next recommendation is " + mostSimilarBook[1] + " written by " + mostSimilarBook[4] + ". Here is the description: " + mostSimilarBook[0]
+    let newRec: displayedBookFields = {
+      title: description.substring(description.indexOf('recommendation is ') + 18, description.indexOf(' written ')),
+      author: '',
+      rating: 0,
+      description: description,
+      imageUrl: ''
+    };
+
+    let bookInformation = await getBookInformation(newRec.title) as unknown as BookInformation
+    newRec.rating = bookInformation.averageRating
+    newRec.author = bookInformation.author[0]
+    newRec.imageUrl = 'https://covers.openlibrary.org/b/isbn/' + bookInformation.isbn + '-M.jpg'
+
+    recommendations.push(newRec)
+    setRecommendations(recommendations)
+
+    console.log(recommendations)
+    if (recommendations.length == 2) {
+      setAppState(AppState.ModelFinished);
+    }
+  }
+
+
+  const doKMeans = async () => {
+    if (bookTitle != '') {
+      let bookInformation = await getBookInformation(bookTitle) as unknown as BookInformation
+      let genres: string[] = []
+
+      //get the converted genres
+      const config = {
+        headers: { 'Access-Control-Allow-Origin': '*' }
+      };
+      await axios
+        .post("http://127.0.0.1:5000/convertGenres", {
+          input: bookInformation.subjects,
+        }, config)
+        .then((response) => {
+          // console.log(response)
+          genres = response.data
+        })
+        .catch((er) => {
+          console.log(er);
+        });
+
+      //call the actual kmeans maker function
+      // "http://localhost:5000/kmeans"
+      axios
+        .post("http://127.0.0.1:5000/kmeans", {
+          book_genres: genres,
+          num_pages: bookInformation.numPages,
+          ratings_count: bookInformation.numRatings,
+          average_rating: bookInformation.averageRating,
+          text_reviews_count: bookInformation.numInteractions
+        }, config)
+        .then((response) => {
+          console.log(response.data)
+          addBookToRecommendations(response.data)
+        })
+        .catch((er) => {
+          console.log(er);
+          addBookToRecommendations("Your recommendation is 1984 by George Orwell")
+
+        });
+    }
+  }
+
+  const doSentenceTransformer = async () => {
+    //get the converted genres
+    const config = {
+      headers: { 'Access-Control-Allow-Origin': '*' }
+    };
+    axios
+      .post("http://127.0.0.1:5000/sentenceTransformer", {
+        userDescription: description
+      }, config)
+      .then((response) => {
+        console.log(response.data)
+        addBookToRecommendations(response.data)
+
+      })
+      .catch((er) => {
+        console.log(er);
+      });
   }
 
   const getBookInformation = async (searchTerm: string) => {
@@ -47,121 +201,72 @@ function App() {
           numRatings: firstResult.ratings_count,
           description: firstResult.first_sentence,
           numPages: numPages,
-          subjects: firstResult.subject
+          subjects: firstResult.subject,
+          isbn: firstResult.isbn
         }
+
+        console.log(firstResult);
       })
 
     return result
   }
-  interface BookInformation {
-    title: string,
-    author: string[],
-    numInteractions: number,
-    averageRating: number,
-    numRatings: number,
-    description: string,
-    numPages: number,
-    subjects: string[]
-  }
 
-  const doKMeans = async () => {
-    if (bookTitle != '') {
-      let bookInformation = await getBookInformation(bookTitle) as unknown as BookInformation
-      let genres : string[] = []
-      let recommendation = ''
-      
-      //get the converted genres
-      const config = {
-        headers: { 'Access-Control-Allow-Origin': '*' }
-      };
-      await axios
-        .post("http://127.0.0.1:5000/convertGenres", {
-          input: bookInformation.subjects,
-        }, config)
-        .then((response) => {
-          // console.log(response)
-          genres = response.data
-        })
-        .catch((er) => {
-          console.log(er);
-        });
+  function clickedEye() {
+    setAppState(AppState.Read1984);
 
-      console.log(genres)
-      //call the actual kmeans maker function
-      // "http://localhost:5000/kmeans"
-      axios
-        .post("http://127.0.0.1:5000/kmeans", {
-          book_genres: genres,
-          num_pages: bookInformation.numPages,
-          ratings_count: bookInformation.numRatings,
-          average_rating: bookInformation.averageRating,
-          text_reviews_count: bookInformation.numInteractions
-        }, config)
-        .then((response) => {
-          recommendation = response.data
-          console.log(recommendation)
-        })
-        .catch((er) => {
-          console.log(er);
-        });
-      axios
-      .post("http://127.0.0.1:5000/sentenceTransformer", {
-        userDescription: description
-      }, config)
-      .then((response) => {
-        recommendation = response.data
-        console.log(recommendation)
-      })
-      .catch((er) => {
-        console.log(er);
-      });
-    }
-    // axios({
-    //   method: "GET",
-    //   url: "/kmeans",
-    // })
-    //   .then((response) => {
-    //     const res = response.data
-    //     setBookTitle(res)
-    //     alert("BOO")
-    //   }).catch((error) => {
-    //     if (error.response) {
-    //       console.log(error.response)
-    //       console.log(error.response.status)
-    //       console.log(error.response.headers)
-    //     }
-    //   })
+    let newRec: displayedBookFields = {
+      title: '1984',
+      author: 'George Orwell',
+      rating: 4.67,
+      description: "1984 written by George Orwell. Read it. (We are always watching)",
+      imageUrl: 'https://covers.openlibrary.org/b/olid/OL22819394M-M.jpg'
+    };
+
+    recommendations.length = 0
+    recommendations.push(newRec)
+    setRecommendations(recommendations)
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>
-          Book Recommender!
-        </h1>
-        <p>Insert the title of a book you like and/or a description of what you want to see.</p>
-        <p>Wait and see the recommendations from it!</p>
+    <div className='fullPage'>
+      <div className='b1'>
+        <div className='b2'>
 
-        {bookTitle}
-        <button onClick={doKMeans}>Click me</button>
-
-
-        <form onSubmit={handleSubmit}>
-          <h2>Input Your Information Below</h2>
-          <label>
-            Book Title
-            <input type="text" id="query" name="q" onChange={(e: any) => setBookTitle(e.target.value)} />
-          </label>
-          <div></div>
-          <label>
-            Book Description
-            <input type="text" id="query" name="q" onChange={(e: any) => setDescription(e.target.value)} />
-          </label>
-
-          <input type="submit" value="Submit" />
-        </form>
-      </header>
+          <div className="App">
+            <h1>
+              Book Recommender!
+            </h1>
+            <h2>
+              Praise INGSOC!!! Read What WE Tell You To
+            </h2>
+            <div className='mainContent'>
+              <div className="c1">
+                <InputSection handleSubmit={handleSubmit} setBookTitle={handleSetBookTitle} setDescription={handleSetDescription} setAppState={handleSetState} />
+                <ToastContainer
+                  position="top-center"
+                  autoClose={2000}
+                  hideProgressBar={false}
+                  newestOnTop
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="colored"
+                  transition={Zoom}
+                />
+              </div>
+              <div className='c2'>
+                <OutputSection appState={appState} recommendations={recommendations} />
+              </div>
+            </div>
+            <button className="eyeButton"><img className="eyeButtonImage" src={EyeButton} alt="my image" onClick={clickedEye} /></button>
+            
+          </div>
+        </div>
+      </div>
     </div>
+
   );
 }
 

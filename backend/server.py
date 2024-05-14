@@ -6,15 +6,18 @@ import string
 import json
 app = Flask(__name__)
 CORS(app)
+
 #Members API Route
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
+
 @app.route('/sentenceTransformer', methods=['POST'])
 def doSentenceTransformerModel():
     description = request.json.get('userDescription')
     result = sentenceTransformerModel(description)
     return result
+
 @app.route('/kmeans', methods=['POST'])
 def doKmeans():
     bookData = request.json
@@ -26,6 +29,7 @@ def doKmeans():
     result = kmeans(average_rating, num_pages, ratings_count, text_reviews_count, genres)
     print(result)
     return result
+    
 @app.route('/convertGenres', methods=['POST'])
 def convertGenres():
     defaultGenres = ['Fantasy', 'Young Adult', 'Fiction', 'Childrens', 'Adventure', 'Classics', 'Mystery', 'Novels', 'Science Fiction', 'Humor', 'European Literature', 'History', 'Historical', 'Philosophy', 'Cultural', 'Biography', 'Literature', 'American', 'Adult', 'Romance']

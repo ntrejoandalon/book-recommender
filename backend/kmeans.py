@@ -23,7 +23,7 @@ def kmeans(average_rating, num_pages, ratings_count, text_reviews_count, genres)
     clusterBooks = getBooksInCluster(userBookCluster, updatedFullBookData)
     
     bookRecc, distance, point = findClosestPoint(clusterBooks, userBookPCA)
-    result = "Your recommendation is " + bookRecc['Title'] + " by " + bookRecc['Author'] + ". It has a rating of " + str(bookRecc['average_rating']) + " stars!"
+    result = "Your recommendation is " + bookRecc['Title'] + " written by " + bookRecc['Author'] + ". It has a rating of " + str(bookRecc['average_rating']) + " stars!"
     return result
 
 

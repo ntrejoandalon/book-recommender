@@ -1,0 +1,7 @@
+.emergencyText{
+    color: #e76a28;
+    font-size: calc(3px + 3vmin);
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 0;
+}

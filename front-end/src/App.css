@@ -1,16 +1,91 @@
-
-.App-header {
-  background-color: #263145;
-  padding-top:5%;
-  min-height: 100vh;
+.App {
+  background-color: #10131b;
+  border: 4px solid #f2e3c1;
+  min-height: 82.8vh;
+  padding-top: 2%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-size: calc(7px + 2vmin);
+  padding-left: 5%;
+  padding-right: 5%;
+  text-align: center;
+  color: #f2e3c1;
 }
 
-.form{
-  flex-direction: column;
+.mainContent {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 5%;
+}
+
+.c1 {
+  width: 38%;
+  text-align: left;
+  padding-right: 5%
+}
+
+.c2 {
+  width: auto;
+  flex-grow: 2;
   align-items: center;
+  text-align: center;
+}
+
+.h2 {
+  font-style: italic
+}
+
+.b1 {
+  background-color: #3c6d8d;
+  padding: 1.5%;
+  border: 8px solid #f2e3c1;
+}
+
+.b2 {
+  background-color: #10131b;
+  padding: 1%;
+  border: 8px solid #f2e3c1;
+
+}
+
+.fullPage {
+  height: 100vh;
+  width: 100vw;
+}
+
+.Toastify__toast-theme--colored.Toastify__toast--error {
+  background-color: #e76a28 !important;
+  color: #ffffff !important;
+  min-width: 20vw;
+  font-size: calc(3px + 2vmin);
+}
+
+.eyeButton {
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+  background-color: inherit;
+  transition: transform 5s;
+  width: 10vh;
+  border-radius: 5vh;
+  position: absolute;
+  bottom: 8.75%;
+  right: 4.5%}
+
+.eyeButton:hover {
+  transform: rotate(360deg);
+}
+
+.eyeButtonImage {
+  width: 10vh;
+  height: auto;
+  transition: 2s;
+  border-radius: 5vh;
+
+}
+
+.eyeButtonImage:hover {
+  transform: scale(2);
 }

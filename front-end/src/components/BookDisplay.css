@@ -1,0 +1,56 @@
+.titleLine {
+    display: inline-block;
+    padding-right: 5%;
+    text-wrap: wrap;
+}
+
+.bookDisplayContent {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+
+}
+
+.descriptionText {
+    text-wrap: wrap;
+}
+
+.fullBookCard {
+    padding-left: 25%;
+    padding-bottom: 5%;
+    text-align: left;
+}
+
+.sideContent{ 
+    text-align: left;
+    padding-left: 5%;
+}
+
+.loader{
+    color: #e76a28;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 3%;
+    font-style: italic;
+}
+
+a {
+    position: relative
+  }
+  
+  a span {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
+    background:rgba(16,19,27,.8);
+    font-size: calc(3px + 1.5vmin);
+
+  }
+  
+  a:hover span {
+    display: block
+  }
